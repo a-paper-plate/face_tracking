@@ -146,7 +146,7 @@ with dpg.texture_registry():
 
 
 
-with dpg.window(label="Example Window",tag="Primary Window"):
+with dpg.window(label="Example Window",tag="Primary_Window"):
   with dpg.group(horizontal=True):
     dpg.add_image(texture_tag="camera_texture")
     dpg.add_image(texture_tag="mapped_face_points_texture")
@@ -164,7 +164,7 @@ with dpg.window(label="Example Window",tag="Primary Window"):
 dpg.show_viewport()
 #dpg.show_item_registry()
 #dpg.show_metrics()
-dpg.set_primary_window("Primary Window", True)
+dpg.set_primary_window("Primary_Window", True)
 
 try:
   while dpg.is_dearpygui_running():
