@@ -1,5 +1,5 @@
-import dearpygui.dearpygui as dpg
 from typing import Union,Any,Callable
+import dearpygui.dearpygui as dpg
 import helpers
 
 class add_2d_slider:
@@ -90,7 +90,7 @@ class add_2d_slider:
             new_x=helpers.clamp_number(0,self.width,x)
             new_y=helpers.clamp_number(0,self.height,y)
 
-            
+
         # inverting Y so up is positive
         new_y=self.height-new_y
 
