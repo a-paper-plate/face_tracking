@@ -25,7 +25,21 @@ color=(255, 255, 255,255)  # red
 
 
 
-blendshapes_slider={"_neutral":0,
+blendshapes_slider={
+"eyeLookDownLeft":0,
+"eyeLookUpLeft":0,
+"eyeLookInLeft":0,
+"eyeLookOutLeft":0,
+
+"eyeLookDownRight":0,
+"eyeLookUpRight":0,
+"eyeLookInRight":0,
+"eyeLookOutRight":0,
+
+"jawOpen":0,
+"jawLeft":0,
+"jawRight":0,
+"_neutral":0,
               "browDownLeft":0,
               "browDownRight":0,
               "browInnerUp":0,
@@ -85,7 +99,7 @@ alias_blendshapes_2D_slider={"eyeLookDownLeft":"eyeLookLeft_dir",
                             "jawLeft":"jaw_dir",
                             "jawRight":"jaw_dir"}
 
-blendshapes_2D_slider={"eyeLookLeft_dir":None,"eyeLookRight_dir":None,"jaw_dir":None}
+blendshapes_2D_slider={"jaw_dir":None,"eyeLookLeft_dir":None,"eyeLookRight_dir":None}
 
 
 cap=helpers.init_camera(width,height)
@@ -96,10 +110,14 @@ ret, image = cap.read()
 if not ret:
   raise Exception("camera closed")
 height,width,_=image.shape
-print(helpers.detect_face(image,landmarker__detector))
-
-
-
+detection_result=helpers.detect_face(image,landmarker__detector)
+t=0
+for blendshape in detection_result.face_blendshapes:
+    for shape in blendshape:
+      if shape.category_name in list(alias_blendshapes_2D_slider.keys()):
+        print(shape.category_name)
+        print(t)
+      t+=1
 
 
 
@@ -132,14 +150,16 @@ with dpg.window(label="Example Window",tag="Primary Window"):
   with dpg.group(horizontal=True):
     dpg.add_image(texture_tag="camera_texture")
     dpg.add_image(texture_tag="mapped_face_points_texture")
-  for blendshape in blendshapes_slider.keys():
-    print(blendshape)
-    dpg.add_progress_bar(overlay=blendshape,tag=blendshape)
 
   with dpg.group(horizontal=True):
     for blendshape in blendshapes_2D_slider.keys():
-      slider_2d=add_2d_slider(100,100,tag=blendshape)
+      slider_2d=add_2d_slider(100,100,label=blendshape,tag=blendshape,interactable=False,normalized_io=True)
       blendshapes_2D_slider[blendshape]=slider_2d 
+
+  for blendshape in blendshapes_slider.keys():
+    dpg.add_progress_bar(overlay=blendshape,tag=blendshape)
+
+  
 
 dpg.show_viewport()
 #dpg.show_item_registry()
@@ -156,19 +176,17 @@ try:
     mapped_face_points=helpers.blank_image(height,width)
 
     detection_result=helpers.detect_face(image,landmarker__detector)
-    # Update the blendshape sliders
-    helpers.update_blendshape_sliders(blendshapes_slider,blendshapes_2D_slider,alias_blendshapes_2D_slider, detection_result)
 
+    # Update the blendshape sliders
+    helpers.update_blendshape_sliders(blendshapes_slider, detection_result,alias_blendshapes_2D_slider)
+    helpers.update_blendshape_2d_sliders(blendshapes_2D_slider,detection_result,alias_blendshapes_2D_slider)
 
     face_annotated=helpers.annotate_image(mapped_face_points, detection_result, color)
 
     
     image_dpg=helpers.convert_for_dpg(image)
     face_annotated_dpg=helpers.convert_for_dpg(face_annotated)
-    
-    
-    
-    
+
     
     # Update the texture
     dpg.set_value("camera_texture", image_dpg)
@@ -179,12 +197,3 @@ try:
 finally:
   cap.release()
   dpg.destroy_context()
-
-
-
-
-
-
-
-
-  

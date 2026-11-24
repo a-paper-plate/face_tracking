@@ -15,7 +15,10 @@ class add_2d_slider:
                  show:bool=True,
                  id:Union[int, str]=None,
                  coord_readout:bool=True,
+                 interactable:bool=True,
+                 normalized_io:bool=False,
                  knob_radius:int=6,
+                 knob_color:str=(66, 150, 250, 255),
                  default_x:int=0,
                  default_y:int=0)->int|Union[int, str]:
 
@@ -30,9 +33,13 @@ class add_2d_slider:
         self.show=show
         self.id=id
         self.coord_readout=coord_readout
+        self.interactable=interactable
         self.knob_radius=knob_radius
+        self.knob_color=knob_color
         self.current_x=default_x
         self.current_y=default_y
+        self.normalized_io=normalized_io
+
         if id==None:
             self.uuid=dpg.generate_uuid()
         else:
@@ -40,6 +47,8 @@ class add_2d_slider:
         
         # TODO allow for selecting the "parent" and "before" objects   for default parent dpg.last_item()
         with dpg.group(tag=self.tag,show=self.show):
+            if self.label:
+                dpg.add_text(self.label,tag=f"{self.tag}_label")
             if self.coord_readout:
                 dpg.add_text("X: 0.00, Y: 0.00", tag=f"{self.tag}_coord_readout")
                 
@@ -54,22 +63,37 @@ class add_2d_slider:
                 dpg.draw_line((self.width, 0), (self.width, self.height), color=(80, 80, 80, 255), tag=f"{self.tag}_hline")
 
                 # draggable handle
-                dpg.draw_circle((0, self.height), self.knob_radius, color=(255, 255, 255, 255), fill=(66, 150, 250, 255), tag=f"{self.tag}_knob")
+                dpg.draw_circle((0, self.height), self.knob_radius, color=(255, 255, 255, 255), fill=self.knob_color, tag=f"{self.tag}_knob")
 
 
         # set default pos
         self.set_value(default_x,default_y)
 
         # register global mouse handler
-        with dpg.handler_registry():
-            dpg.add_mouse_drag_handler(button=dpg.mvMouseButton_Left, callback=self._update_2d_slider)
-            dpg.add_mouse_click_handler(button=dpg.mvMouseButton_Left, callback=self._update_2d_slider)
+        if self.interactable:
+            with dpg.handler_registry():
+                dpg.add_mouse_drag_handler(button=dpg.mvMouseButton_Left, callback=self._update_2d_slider)
+                dpg.add_mouse_click_handler(button=dpg.mvMouseButton_Left, callback=self._update_2d_slider)
         
 
 
     def update_2d_slider(self,x,y):
-        new_x=helpers.clamp_number(0,self.width,x)
-        new_y=helpers.clamp_number(0,self.height,y)
+        
+        
+        
+        if self.normalized_io:
+            new_x=helpers.clamp_number(0,1,x)
+            new_y=helpers.clamp_number(0,1,y)
+            new_x=new_x * self.width
+            new_y=new_y * self.height
+        else:
+            new_x=helpers.clamp_number(0,self.width,x)
+            new_y=helpers.clamp_number(0,self.height,y)
+
+            
+        # inverting Y so up is positive
+        new_y=self.height-new_y
+
         self.current_x=new_x
         self.current_y=new_y
         # move the visual knob and crosshairs
@@ -106,4 +130,7 @@ class add_2d_slider:
 
 
     def get_value(self):
-        return ( 0 + (self.current_x / self.width) * (1 - 0), 1 - (self.current_y / self.height) * (1 - 0))
+        if self.normalized_io:
+            return ( 0 + (self.current_x / self.width) * (1 - 0), 1 - (self.current_y / self.height) * (1 - 0))
+        else:
+            return (self.current_x,self.current_y)

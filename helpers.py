@@ -81,15 +81,53 @@ def annotate_image(image, detection_results, color=(255,255,255), thickness=1, r
 
 
 
-def update_blendshape_2d_sliders(slider_2ds,detection_result):
-  
-  pass
-
-
-
-def update_blendshape_sliders(sliders, detection_result):
+def update_blendshape_2d_sliders(slider_2ds,detection_result,alias_blendshapes_2D_slider):
   for blendshape in detection_result.face_blendshapes:
     for shape in blendshape:
-      dpg.set_value(shape.category_name,shape.score)
-      sliders[shape.category_name]=shape.score
+      slider_2d_x=0.5
+      slider_2d_y=0.5
+      if shape.category_name in list(alias_blendshapes_2D_slider.keys()):
+        blendshape_to_update=alias_blendshapes_2D_slider[shape.category_name]
+        
+        if blendshape_to_update == "eyeLookLeft_dir":
+          
+          slider_2d_y-=detection_result.face_blendshapes[0][11].score / 2
+          slider_2d_y+=detection_result.face_blendshapes[0][17].score / 2
+          slider_2d_x-=detection_result.face_blendshapes[0][13].score / 2
+          slider_2d_x+=detection_result.face_blendshapes[0][15].score / 2
+
+          
+          slider_2ds[blendshape_to_update].update_2d_slider(slider_2d_x,slider_2d_y)
+          continue
+        if blendshape_to_update =="eyeLookRight_dir":
+          slider_2d_y-=detection_result.face_blendshapes[0][12].score / 2
+          slider_2d_y+=detection_result.face_blendshapes[0][18].score / 2
+          slider_2d_x+=detection_result.face_blendshapes[0][14].score / 2
+          slider_2d_x-=detection_result.face_blendshapes[0][16].score / 2
+
+          slider_2ds[blendshape_to_update].update_2d_slider(slider_2d_x,slider_2d_y)
+          continue
+        if blendshape_to_update =="jaw_dir":
+          slider_2d_y=1-detection_result.face_blendshapes[0][25].score
+          slider_2d_x+=detection_result.face_blendshapes[0][24].score * 5
+          slider_2d_x-=detection_result.face_blendshapes[0][26].score * 5
+
+
+
+          slider_2ds[blendshape_to_update].update_2d_slider(slider_2d_x,slider_2d_y)
+          continue
+        
+
+
+
+def update_blendshape_sliders(sliders, detection_result,alias_blendshapes_2D_slider):
+  for blendshape in detection_result.face_blendshapes:
+    for shape in blendshape:
+      try:
+        #if not shape.category_name in list(alias_blendshapes_2D_slider.keys()):
+        dpg.set_value(shape.category_name,shape.score)
+        sliders[shape.category_name]=shape.score
+      except Exception as e:
+        print(shape.category_name)
+        print(sliders)
         
